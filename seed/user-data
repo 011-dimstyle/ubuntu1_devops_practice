@@ -1,0 +1,105 @@
+  #cloud-config
+
+  autoinstall: 
+      version: 1
+      identity:
+          hostname: ubuntu1
+          username: thehood
+          password: $6$oykK2pVQRWr8RCR2$u.Xz.UNGtlYPv6SOg4TWwCcOUWSQK8f5AF69pi9Pvhgy6EHOQhMfSPt87qC/TWrP0NkC/OHfcq0Da8JNBzh4R0
+
+      locale: en_US.UTF-8
+      keyboard:
+          layout: us
+
+      ssh:
+          install-server: true
+          allow-pw: true
+
+      storage:
+          config:
+              - type: disk
+                id: ubuntu1-volume
+                match:
+                  serial: ubuntu1-disk
+                wipe: superblock-recursive
+                ptable: gpt
+              
+              #efi partition 
+              - type: partition
+                id: ubuntu1-volume-part1
+                device: ubuntu1-volume
+                size: 800M
+                flag: boot
+                grub_device: true
+              
+              - type: format
+                id: ubuntu1-volume-part1-format
+                volume: ubuntu1-volume-part1
+                fstype: fat32
+              
+              - type: mount 
+                id: efi-directory
+                device: ubuntu1-volume-part1-format
+                path: /boot/efi
+              
+              #boot partition
+              - type: partition
+                id: ubuntu1-volume-part2
+                device: ubuntu1-volume
+                size: 1G
+              
+              - type: format
+                id: ubuntu1-volume-part2-format
+                volume: ubuntu1-volume-part2
+                fstype: ext4
+              
+              - type: mount
+                id: boot-directory
+                device: ubuntu1-volume-part2-format
+                path: /boot
+              
+              #swap partition
+              - type: partition
+                id: ubuntu1-volume-part3
+                device: ubuntu1-volume
+                size: 8G
+
+              - type: format
+                id: ubuntu1-volume-part3-format
+                volume: ubuntu1-volume-part3
+                fstype: swap
+
+              #root partition
+              - type: partition
+                id: ubuntu1-volume-part4
+                device: ubuntu1-volume
+                size: -1
+
+              - type: format 
+                id: ubuntu1-volume-part4-format
+                volume: ubuntu1-volume-part4
+                fstype: ext4
+              
+              - type: mount
+                id: root-directory
+                device: ubuntu1-volume-part4-format
+                path: /
+      packages:
+          - curl
+          - git
+          - nano
+          - docker.io
+          - nginx 
+          - golang
+      
+      users:
+          - name: thehood
+            groups: sudo
+            sudo: ALL=(ALL:ALL) ALL
+            shell: /bin/bash
+      
+      runcmd:
+          - systemctl enable --now nginx
+          - systemctl enable --now docker
+      
+
