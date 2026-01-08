@@ -20,7 +20,7 @@
               - type: disk
                 id: ubuntu1-volume
                 match:
-                  serial: ubuntu1-disk
+                  serial: linux-disk
                 wipe: superblock-recursive
                 ptable: gpt
               
